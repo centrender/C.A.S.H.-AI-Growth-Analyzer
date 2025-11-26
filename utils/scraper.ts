@@ -43,6 +43,7 @@ export async function scrapeUrl(url: string): Promise<ScrapedContent> {
       headings,
       text,
       url,
+      html, // Include raw HTML for signal detection
     };
   } catch (error) {
     throw new Error(`Scraping failed: ${error instanceof Error ? error.message : 'Unknown error'}`);

@@ -1,130 +1,285 @@
 'use client';
 
 import { AnalysisResult } from '@/types';
-import { formatCASHScore, formatTimestamp, truncateText } from '@/utils/formatter';
+import { exportToPDF } from '@/utils/formatter';
 
 interface ResultViewerProps {
   result: AnalysisResult | null;
 }
 
+function getScoreLevel(score: number): { label: string; color: string; bgColor: string } {
+  if (score >= 70) {
+    return { label: 'Strong', color: 'text-green-700', bgColor: 'bg-green-100' };
+  } else if (score >= 40) {
+    return { label: 'Decent', color: 'text-yellow-700', bgColor: 'bg-yellow-100' };
+  } else {
+    return { label: 'Needs Work', color: 'text-red-700', bgColor: 'bg-red-100' };
+  }
+}
+
+function getScoreColor(score: number): string {
+  if (score >= 70) return 'bg-green-500';
+  if (score >= 40) return 'bg-yellow-500';
+  return 'bg-red-500';
+}
+
+function getSeverityColor(severity: 'high' | 'medium' | 'low'): string {
+  if (severity === 'high') return 'bg-red-500';
+  if (severity === 'medium') return 'bg-orange-500';
+  return 'bg-yellow-500';
+}
+
+function getPriorityColor(priority: 'high' | 'medium' | 'low'): string {
+  if (priority === 'high') return 'border-red-500';
+  if (priority === 'medium') return 'border-orange-500';
+  return 'border-yellow-500';
+}
+
+// Map business type to CTA display name
+function getCTABusinessType(businessType: string): string {
+  // Map "Real Estate" to "Property Management" for professional designation
+  if (businessType === 'Real Estate') {
+    return 'Property Management';
+  }
+  return businessType;
+}
+
 export default function ResultViewer({ result }: ResultViewerProps) {
   if (!result) return null;
 
-  const formattedScores = formatCASHScore(result.cashScore);
+  const overallLevel = getScoreLevel(result.scores.overall);
+  const contentLevel = getScoreLevel(result.scores.content);
+  const authorityLevel = getScoreLevel(result.scores.authority);
+  const systemsLevel = getScoreLevel(result.scores.systems);
+  const hypergrowthLevel = getScoreLevel(result.scores.hypergrowth);
+
+  // Get most important signal for each category
+  const getTopSignal = (signals: typeof result.signals.content) => {
+    const sorted = [...signals].sort((a, b) => a.score - b.score);
+    return sorted[0] || null;
+  };
+
+  const topContentSignal = getTopSignal(result.signals.content);
+  const topAuthoritySignal = getTopSignal(result.signals.authority);
+  const topSystemsSignal = getTopSignal(result.signals.systems);
+  const topHypergrowthSignal = getTopSignal(result.signals.hypergrowth);
 
   return (
-    <div className="w-full max-w-4xl space-y-6">
-      {/* Header */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-gray-900">Analysis Results</h2>
-          <span className="text-sm text-gray-500">Request ID: {result.requestId}</span>
+    <div className="w-full max-w-6xl space-y-6" data-result-container>
+      {/* Overall Score Card */}
+      <div className="bg-white rounded-lg shadow-lg p-8 border-2 border-gray-200">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Overall CASH Score</h2>
+            <div className="flex items-center gap-3">
+              <span className={`text-5xl font-bold ${overallLevel.color}`}>
+                {result.scores.overall}
+              </span>
+              <span className="text-3xl text-gray-500">/100</span>
+            </div>
+          </div>
+          <div className={`px-6 py-3 rounded-full ${overallLevel.bgColor} ${overallLevel.color} font-semibold text-lg`}>
+            {overallLevel.label}
+          </div>
         </div>
-        <div className="space-y-2">
-          <p className="text-sm text-gray-600">
-            <span className="font-semibold">URL:</span>{' '}
-            <a
-              href={result.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 hover:underline"
-            >
-              {result.url}
-            </a>
-          </p>
-          <p className="text-sm text-gray-600">
-            <span className="font-semibold">Analyzed:</span> {formatTimestamp(result.timestamp)}
-          </p>
+        <div className="mt-4">
+          <div className="w-full bg-gray-200 rounded-full h-4">
+            <div
+              className={`h-4 rounded-full ${getScoreColor(result.scores.overall)} transition-all duration-500`}
+              style={{ width: `${result.scores.overall}%` }}
+            />
+          </div>
+        </div>
+        {/* Export PDF Button */}
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={() => exportToPDF(result)}
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-semibold flex items-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Export Report (PDF)
+          </button>
         </div>
       </div>
 
-      {/* CASH Scores */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">C.A.S.H. Scores</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          {/* Overall Score - Highlighted */}
-          <div className="lg:col-span-5 mb-2">
-            <div className={`${formattedScores.overall.bgColor} rounded-lg p-4 border-2 border-gray-200`}>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-gray-700">Overall Score</span>
-                <span className={`text-3xl font-bold ${formattedScores.overall.color}`}>
-                  {formattedScores.overall.value}
-                </span>
+      {/* Category Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Content */}
+        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-bold text-gray-900">Content</h3>
+            <span className={`text-2xl font-bold ${contentLevel.color}`}>
+              {result.scores.content}
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+            <div
+              className={`h-2 rounded-full ${getScoreColor(result.scores.content)} transition-all duration-500`}
+              style={{ width: `${result.scores.content}%` }}
+            />
+          </div>
+          {topContentSignal && (
+            <p className="text-xs text-gray-600 mt-2 line-clamp-2">
+              {topContentSignal.notes}
+            </p>
+          )}
+        </div>
+
+        {/* Authority */}
+        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-bold text-gray-900">Authority</h3>
+            <span className={`text-2xl font-bold ${authorityLevel.color}`}>
+              {result.scores.authority}
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+            <div
+              className={`h-2 rounded-full ${getScoreColor(result.scores.authority)} transition-all duration-500`}
+              style={{ width: `${result.scores.authority}%` }}
+            />
+          </div>
+          {topAuthoritySignal && (
+            <p className="text-xs text-gray-600 mt-2 line-clamp-2">
+              {topAuthoritySignal.notes}
+            </p>
+          )}
+        </div>
+
+        {/* Systems */}
+        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-bold text-gray-900">Systems</h3>
+            <span className={`text-2xl font-bold ${systemsLevel.color}`}>
+              {result.scores.systems}
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+            <div
+              className={`h-2 rounded-full ${getScoreColor(result.scores.systems)} transition-all duration-500`}
+              style={{ width: `${result.scores.systems}%` }}
+            />
+          </div>
+          {topSystemsSignal && (
+            <p className="text-xs text-gray-600 mt-2 line-clamp-2">
+              {topSystemsSignal.notes}
+            </p>
+          )}
+        </div>
+
+        {/* Hypergrowth */}
+        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-bold text-gray-900">Hypergrowth</h3>
+            <span className={`text-2xl font-bold ${hypergrowthLevel.color}`}>
+              {result.scores.hypergrowth}
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+            <div
+              className={`h-2 rounded-full ${getScoreColor(result.scores.hypergrowth)} transition-all duration-500`}
+              style={{ width: `${result.scores.hypergrowth}%` }}
+            />
+          </div>
+          {topHypergrowthSignal && (
+            <p className="text-xs text-gray-600 mt-2 line-clamp-2">
+              {topHypergrowthSignal.notes}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Critical Issues */}
+      {result.priorityIssues.length > 0 && (
+        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+          <h3 className="text-xl font-bold text-gray-900 mb-4">Critical Issues</h3>
+          <div className="space-y-3">
+            {result.priorityIssues.slice(0, 5).map((issue) => (
+              <div key={issue.id} className="flex items-start gap-3">
+                <div className={`w-3 h-3 rounded-full mt-1.5 flex-shrink-0 ${getSeverityColor(issue.severity)}`} />
+                <p className="text-gray-700 flex-1">{issue.label}</p>
               </div>
-            </div>
-          </div>
-
-          {/* Individual Scores */}
-          <div className={`${formattedScores.clarity.bgColor} rounded-lg p-4`}>
-            <div className="text-sm font-semibold text-gray-700 mb-1">Clarity</div>
-            <div className={`text-2xl font-bold ${formattedScores.clarity.color}`}>
-              {formattedScores.clarity.value}
-            </div>
-          </div>
-
-          <div className={`${formattedScores.authority.bgColor} rounded-lg p-4`}>
-            <div className="text-sm font-semibold text-gray-700 mb-1">Authority</div>
-            <div className={`text-2xl font-bold ${formattedScores.authority.color}`}>
-              {formattedScores.authority.value}
-            </div>
-          </div>
-
-          <div className={`${formattedScores.structure.bgColor} rounded-lg p-4`}>
-            <div className="text-sm font-semibold text-gray-700 mb-1">Structure</div>
-            <div className={`text-2xl font-bold ${formattedScores.structure.color}`}>
-              {formattedScores.structure.value}
-            </div>
-          </div>
-
-          <div className={`${formattedScores.headlines.bgColor} rounded-lg p-4`}>
-            <div className="text-sm font-semibold text-gray-700 mb-1">Headlines</div>
-            <div className={`text-2xl font-bold ${formattedScores.headlines.color}`}>
-              {formattedScores.headlines.value}
-            </div>
+            ))}
           </div>
         </div>
-      </div>
+      )}
 
-      {/* AI Analysis */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">AI Analysis</h3>
-        <div className="prose max-w-none">
-          <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-            {result.aiAnalysis}
+      {/* Recommended Offers */}
+      {result.offers.length > 0 && (
+        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+          <h3 className="text-xl font-bold text-gray-900 mb-4">Recommended Offers</h3>
+          <div className="space-y-4">
+            {result.offers
+              .sort((a, b) => {
+                const priorityOrder = { high: 3, medium: 2, low: 1 };
+                return priorityOrder[b.priority] - priorityOrder[a.priority];
+              })
+              .map((offer) => (
+                <div
+                  key={offer.id}
+                  className={`w-full p-4 rounded-lg border-2 ${getPriorityColor(offer.priority)} bg-gray-50`}
+                >
+                  <h4 className="font-semibold text-gray-900 mb-2">{offer.label}</h4>
+                  {offer.id === 'ai_receptionist' && offer.monetizedLoss ? (
+                    <div>
+                      <p className="text-sm text-gray-600 mb-2">
+                        <span className="font-bold text-red-600">URGENT: Your Phone Is Losing You ${offer.monetizedLoss.toLocaleString()}/month.</span>{' '}
+                        No online booking system detected. Our AI receptionist handles calls and bookings 24/7.
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-600">{offer.reason}</p>
+                  )}
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+
+      {/* VAPI Dynamic CTA */}
+      {result.detectedBusinessType && (
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg p-8 border-2 border-blue-700 text-center">
+          <a
+            href={`https://vapi.ai/demo/${getCTABusinessType(result.detectedBusinessType).toLowerCase().replace(/\s+/g, '-')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block px-8 py-4 bg-white text-blue-600 rounded-lg font-bold text-lg hover:bg-blue-50 transition-colors shadow-md hover:shadow-lg"
+          >
+            Talk to the <strong>{getCTABusinessType(result.detectedBusinessType)}</strong> AI Receptionist Demo Now
+          </a>
+          <p className="mt-4 text-white text-sm opacity-90">
+            Experience the 24/7 fix that your current system is missing.
           </p>
         </div>
-      </div>
+      )}
 
-      {/* Scraped Content Preview */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4">Content Preview</h3>
-        <div className="space-y-4">
-          <div>
-            <h4 className="font-semibold text-gray-800 mb-2">Title:</h4>
-            <p className="text-gray-700">{result.scrapedContent.title}</p>
+      {/* AI Notes */}
+      {result.aiSummary && (
+        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+          <h3 className="text-xl font-bold text-gray-900 mb-4">AI Notes</h3>
+          <div className="space-y-3 mb-4">
+            {result.aiSummary.shortBullets.map((bullet, idx) => (
+              <div key={idx} className="flex items-start gap-3">
+                <span className="text-blue-600 mt-1">•</span>
+                <p className="text-gray-700 flex-1">{bullet}</p>
+              </div>
+            ))}
           </div>
-          <div>
-            <h4 className="font-semibold text-gray-800 mb-2">
-              Headings ({result.scrapedContent.headings.length}):
-            </h4>
-            <ul className="list-disc list-inside space-y-1 text-gray-700">
-              {result.scrapedContent.headings.slice(0, 10).map((heading, idx) => (
-                <li key={idx}>{truncateText(heading, 100)}</li>
-              ))}
-              {result.scrapedContent.headings.length > 10 && (
-                <li className="text-gray-500 italic">
-                  ... and {result.scrapedContent.headings.length - 10} more
-                </li>
-              )}
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold text-gray-800 mb-2">Text Preview:</h4>
-            <p className="text-gray-700">{truncateText(result.scrapedContent.text, 500)}</p>
-          </div>
+          {result.aiSummary.oneLineHook && (
+            <div className="mt-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+              <p className="text-sm font-semibold text-gray-700 mb-1">Outreach Hook:</p>
+              <p className="text-gray-900 font-medium">{result.aiSummary.oneLineHook}</p>
+            </div>
+          )}
         </div>
+      )}
+
+      {/* Request Info (small, bottom) */}
+      <div className="text-center text-sm text-gray-500">
+        Request ID: {result.requestId}
       </div>
     </div>
   );
 }
-

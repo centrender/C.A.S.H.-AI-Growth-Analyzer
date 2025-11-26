@@ -10,7 +10,7 @@ export default function Home() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleAnalyze = async (url: string) => {
+  const handleAnalyze = async (url: string, email: string) => {
     setIsLoading(true);
     setError(null);
     setResult(null);
@@ -21,7 +21,7 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ url, email }),
       });
 
       if (!response.ok) {
@@ -46,9 +46,17 @@ export default function Home() {
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
             C.A.S.H. Method AI Growth Analyzer
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Analyze your content using the C.A.S.H. Method: <strong>Clarity</strong>, <strong>Authority</strong>, <strong>Structure</strong>, and <strong>Headlines</strong>
-          </p>
+          <div className="text-lg text-gray-600 max-w-2xl mx-auto space-y-2">
+            <p>
+              Analyze any webpage for growth potential using the <strong>C.A.S.H.</strong> framework:
+            </p>
+            <p>
+              Content, Authority, Systems, Hypergrowth
+            </p>
+            <p>
+              See your pain points, the leak in your growth, and the immediate fix.
+            </p>
+          </div>
         </div>
 
         {/* Input Form */}
