@@ -55,13 +55,13 @@ export function calculateCASHScoreV2(content: ScrapedContent): CASHScoreResult {
   // Calculate 10 proprietary signals
   // Authority/Trust Signals (1, 2, 3, 9)
   const authoritySignals = calculateAuthoritySignals(text, title, html, $);
-  
+
   // Content/Friction/Intent Signals (4, 5, 7, 8)
   const contentSignals = calculateContentSignals(text, title, html, $);
-  
+
   // Systems Signal (6)
   const systemsSignals = calculateSystemsSignals(text, html, $);
-  
+
   // Hypergrowth Signal (10)
   const hypergrowthSignals = calculateHypergrowthSignals(text, html, $);
 
@@ -112,7 +112,7 @@ export function calculateCASHScoreV2(content: ScrapedContent): CASHScoreResult {
     },
     priorityIssues,
     offers,
-    detectedBusinessType,
+    detectedBusinessType: detectedBusinessType || undefined,
   };
 }
 
@@ -129,13 +129,13 @@ function calculateAuthoritySignals(text: string, title: string, html: string, $:
   const reviewMentions = (text.match(/\b(review|rating|stars|testimonial|google reviews|yelp)\b/gi) || []).length;
   const recentReviewKeywords = ['recent', 'latest', 'new review', 'just reviewed', 'this month'];
   const hasRecentMentions = recentReviewKeywords.some(kw => text.includes(kw));
-  
+
   let reviewScore = 0;
   if (reviewWidgets.length > 0) reviewScore += 5;
   if (reviewMentions >= 3) reviewScore += 3;
   if (hasRecentMentions) reviewScore += 2;
   else if (reviewMentions > 0) reviewScore += 1;
-  
+
   signals.push({
     id: 'signal_1_review_recency_volume',
     label: 'Review Recency & Volume',
@@ -152,14 +152,14 @@ function calculateAuthoritySignals(text: string, title: string, html: string, $:
   ];
   const credentialMatches = credentialPatterns.reduce((sum, pattern) => sum + (text.match(pattern) || []).length, 0);
   const hasCredentialSection = /(about|team|staff|credentials|qualifications|our doctor|our team)/i.test(text);
-  
+
   let credentialScore = 0;
   if (credentialMatches >= 5) credentialScore = 9;
   else if (credentialMatches >= 3) credentialScore = 7;
   else if (credentialMatches >= 1 && hasCredentialSection) credentialScore = 5;
   else if (credentialMatches >= 1) credentialScore = 3;
   else credentialScore = 1;
-  
+
   signals.push({
     id: 'signal_2_credential_verification',
     label: 'Credential Verification & Display',
@@ -171,14 +171,14 @@ function calculateAuthoritySignals(text: string, title: string, html: string, $:
   const socialLinks = html.match(/(facebook\.com|instagram\.com|twitter\.com|linkedin\.com|youtube\.com|tiktok\.com)/gi) || [];
   const testimonialCount = (text.match(/\b(testimonial|client said|customer said|review from)\b/gi) || []).length;
   const caseStudyMentions = (text.match(/\b(case study|success story|client story|results)\b/gi) || []).length;
-  
+
   let socialProofScore = 0;
   if (socialLinks.length >= 3) socialProofScore += 4;
   else if (socialLinks.length >= 1) socialProofScore += 2;
   if (testimonialCount >= 3) socialProofScore += 4;
   else if (testimonialCount >= 1) socialProofScore += 2;
   if (caseStudyMentions >= 1) socialProofScore += 2;
-  
+
   signals.push({
     id: 'signal_3_social_proof_density',
     label: 'Social Proof Density',
@@ -190,14 +190,14 @@ function calculateAuthoritySignals(text: string, title: string, html: string, $:
   const trustBadges = html.match(/(bbb|better business bureau|verified|trusted|award|certification|guarantee|warranty)/gi) || [];
   const securityIndicators = html.match(/(ssl|https|secure|encrypted|privacy policy|terms of service)/gi) || [];
   const guaranteeMentions = (text.match(/\b(guarantee|money back|satisfaction guaranteed|warranty)\b/gi) || []).length;
-  
+
   let trustBadgeScore = 0;
   if (trustBadges.length >= 2) trustBadgeScore += 4;
   else if (trustBadges.length >= 1) trustBadgeScore += 2;
   if (securityIndicators.length >= 2) trustBadgeScore += 3;
   else if (securityIndicators.length >= 1) trustBadgeScore += 1;
   if (guaranteeMentions >= 1) trustBadgeScore += 3;
-  
+
   signals.push({
     id: 'signal_9_trust_badge_presence',
     label: 'Trust Badge Presence',
@@ -219,14 +219,14 @@ function calculateContentSignals(text: string, title: string, html: string, $: c
     unclearPricing: !/(price|cost|fee|starting at|\$|pricing)/i.test(text),
     noClearCTA: !/(book now|call now|get started|schedule|contact|free consultation)/i.test(text),
   };
-  
+
   let frictionScore = 10;
   if (frictionIndicators.longForms) frictionScore -= 2;
   if (frictionIndicators.multipleSteps) frictionScore -= 2;
   if (frictionIndicators.unclearPricing) frictionScore -= 3;
   if (frictionIndicators.noClearCTA) frictionScore -= 3;
   frictionScore = Math.max(1, frictionScore);
-  
+
   signals.push({
     id: 'signal_4_conversion_friction',
     label: 'Conversion Friction Points',
@@ -241,11 +241,11 @@ function calculateContentSignals(text: string, title: string, html: string, $: c
     social: ['join', 'become a member', 'sign up', 'register', 'subscribe'],
     action: ['book', 'schedule', 'call', 'contact', 'get started', 'learn more'],
   };
-  
+
   const intentScore = Object.values(intentKeywords).reduce((sum, keywords) => {
     return sum + (keywords.some(kw => text.includes(kw) || title.includes(kw)) ? 2.5 : 0);
   }, 0);
-  
+
   signals.push({
     id: 'signal_5_intent_signal_strength',
     label: 'Intent Signal Strength',
@@ -260,13 +260,13 @@ function calculateContentSignals(text: string, title: string, html: string, $: c
     specific: /\b(\d+%|\$\d+|\d+ years|\d+ clients)\b/.test(text),
     comparison: ['vs', 'compared to', 'better than', 'unlike', 'difference'],
   };
-  
+
   let valuePropScore = 0;
   if (valueProps.unique.some(kw => text.includes(kw))) valuePropScore += 2;
   if (valueProps.benefit.some(kw => text.includes(kw))) valuePropScore += 3;
   if (valueProps.specific) valuePropScore += 3;
   if (valueProps.comparison.some(kw => text.includes(kw))) valuePropScore += 2;
-  
+
   signals.push({
     id: 'signal_7_value_proposition_clarity',
     label: 'Value Proposition Clarity',
@@ -281,13 +281,13 @@ function calculateContentSignals(text: string, title: string, html: string, $: c
     fastLoad: !/(slow|loading|wait|buffering)/i.test(text),
     readable: text.length > 200 && text.length < 5000, // Reasonable content length
   };
-  
+
   let mobileScore = 0;
   if (mobileIndicators.responsive) mobileScore += 4;
   if (mobileIndicators.touchFriendly) mobileScore += 2;
   if (mobileIndicators.fastLoad) mobileScore += 2;
   if (mobileIndicators.readable) mobileScore += 2;
-  
+
   signals.push({
     id: 'signal_8_mobile_experience',
     label: 'Mobile Experience Quality',
@@ -304,22 +304,22 @@ function calculateSystemsSignals(text: string, html: string, $: cheerio.CheerioA
 
   // Signal 6: Automation Infrastructure
   const automationIndicators = {
-    bookingSystem: /(calendly|acuity|appointment|booking|schedule online|book now)/i.test(html) || 
-                    /(book online|schedule online|appointment booking)/i.test(text),
+    bookingSystem: /(calendly|acuity|appointment|booking|schedule online|book now)/i.test(html) ||
+      /(book online|schedule online|appointment booking)/i.test(text),
     aiChatbot: /(chatbot|ai assistant|virtual assistant|automated|24\/7|always available)/i.test(text) ||
-                html.includes('chatbot') || html.includes('intercom') || html.includes('drift'),
+      html.includes('chatbot') || html.includes('intercom') || html.includes('drift'),
     crmIntegration: /(crm|customer relationship|patient portal|portal|login|dashboard|client portal)/i.test(text),
     emailAutomation: /(newsletter|email list|subscribe|mailchimp|constant contact|automated email)/i.test(text),
     paymentSystem: /(pay|payment|checkout|stripe|paypal|square|invoice)/i.test(text),
   };
-  
+
   let automationScore = 0;
   if (automationIndicators.bookingSystem) automationScore += 3;
   if (automationIndicators.aiChatbot) automationScore += 3;
   if (automationIndicators.crmIntegration) automationScore += 2;
   if (automationIndicators.emailAutomation) automationScore += 1;
   if (automationIndicators.paymentSystem) automationScore += 1;
-  
+
   signals.push({
     id: 'signal_6_automation_infrastructure',
     label: 'Automation Infrastructure',
@@ -342,14 +342,14 @@ function calculateHypergrowthSignals(text: string, html: string, $: cheerio.Chee
     heatmap: /(hotjar|crazy egg|mouseflow|heatmap|session recording)/i.test(html),
     attribution: /(utm|source|campaign|medium|attribution)/i.test(html) || /(utm|source|campaign)/i.test(text),
   };
-  
+
   let trackingScore = 0;
   if (trackingIndicators.analytics) trackingScore += 3;
   if (trackingIndicators.pixel) trackingScore += 2;
   if (trackingIndicators.conversion) trackingScore += 2;
   if (trackingIndicators.heatmap) trackingScore += 2;
   if (trackingIndicators.attribution) trackingScore += 1;
-  
+
   signals.push({
     id: 'signal_10_growth_attribution',
     label: 'Growth Attribution Tracking',
@@ -426,12 +426,12 @@ function generatePriorityIssues(
 // Detect business type from content
 function detectBusinessType(text: string, title: string): string | null {
   const combined = `${text} ${title}`.toLowerCase();
-  
+
   // Priority check for Property Management / Corporate Housing
   if (combined.includes('property management') || combined.includes('corporate housing') || combined.includes('multifamily')) {
     return 'Property Management';
   }
-  
+
   // Check for specific business types
   const typeMapping: Record<string, string[]> = {
     'Dentist': ['dentist', 'dental', 'orthodontist', 'oral surgeon'],
@@ -443,13 +443,13 @@ function detectBusinessType(text: string, title: string): string | null {
     'Electrician': ['electrician', 'electrical'],
     'HVAC': ['hvac', 'heating', 'cooling', 'air conditioning'],
   };
-  
+
   for (const [type, keywords] of Object.entries(typeMapping)) {
     if (keywords.some(kw => combined.includes(kw))) {
       return type;
     }
   }
-  
+
   return null;
 }
 
@@ -462,13 +462,13 @@ function calculateMonetizedLoss(text: string, title: string, systemsScore: numbe
 
   // Detect business type
   const businessType = detectBusinessType(text, title);
-  const perLeadValue = businessType 
+  const perLeadValue = businessType
     ? BUSINESS_PROFIT_MULTIPLIERS[businessType.toLowerCase()] || DEFAULT_PER_LEAD_VALUE
     : DEFAULT_PER_LEAD_VALUE;
 
   // Calculate monthly loss: missed calls * per-lead value
   const monthlyLoss = MISSED_CALLS_PER_MONTH * perLeadValue;
-  
+
   return monthlyLoss;
 }
 
@@ -488,7 +488,7 @@ function generateOffers(
     signals.authority.find(s => s.id === 'signal_3_social_proof_density'),
     signals.authority.find(s => s.id === 'signal_9_trust_badge_presence'),
   ].filter(Boolean) as Signal[];
-  
+
   const lowTrustSignals = trustSignals.filter(s => s.score < 5);
   if (scores.authority < 70 && lowTrustSignals.length >= 2) {
     offers.push({
@@ -513,11 +513,11 @@ function generateOffers(
   // Check Systems/Hypergrowth Signals (6, 10) for Scalability Architecture
   const automationSignal = signals.systems.find(s => s.id === 'signal_6_automation_infrastructure');
   const trackingSignal = signals.hypergrowth.find(s => s.id === 'signal_10_growth_attribution');
-  
+
   if (scores.systems < 70 || scores.hypergrowth < 70) {
     const hasLowAutomation = automationSignal && automationSignal.score < 5;
     const hasLowTracking = trackingSignal && trackingSignal.score < 5;
-    
+
     if (hasLowAutomation || hasLowTracking) {
       // Calculate monetized loss for AI Receptionist offer
       const monetizedLoss = calculateMonetizedLoss(
