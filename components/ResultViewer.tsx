@@ -320,10 +320,16 @@ export default function ResultViewer({ result }: ResultViewerProps) {
             rel="noopener noreferrer"
             className="inline-block px-8 py-4 bg-white text-blue-600 rounded-lg font-bold text-lg hover:bg-blue-50 transition-colors shadow-md hover:shadow-lg"
           >
-            Talk to the <strong>{getCTABusinessType(result.detectedBusinessType)}</strong> AI Receptionist Demo Now
+            {(() => {
+              const aiOffer = result.offers.find(o => o.id === 'ai_receptionist');
+              const lossAmount = aiOffer?.monetizedLoss;
+              return lossAmount
+                ? `Unlock Your $${lossAmount.toLocaleString()} Revenue Leak Today`
+                : `Unlock Your Revenue Leak Today`;
+            })()}
           </a>
           <p className="mt-4 text-white text-sm opacity-90">
-            Experience the 24/7 fix that your current system is missing.
+            Stop wasting human time. Start booking tours now.
           </p>
         </div>
       )}
@@ -336,14 +342,20 @@ export default function ResultViewer({ result }: ResultViewerProps) {
             {result.aiSummary.shortBullets.map((bullet, idx) => (
               <div key={idx} className="flex items-start gap-3">
                 <span className="text-blue-600 mt-1">•</span>
-                <p className="text-gray-700 flex-1">{bullet}</p>
+                <p
+                  className="text-gray-700 flex-1"
+                  dangerouslySetInnerHTML={{ __html: bullet }}
+                />
               </div>
             ))}
           </div>
           {result.aiSummary.oneLineHook && (
             <div className="mt-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
               <p className="text-sm font-semibold text-gray-700 mb-1">Outreach Hook:</p>
-              <p className="text-gray-900 font-medium">{result.aiSummary.oneLineHook}</p>
+              <p
+                className="text-gray-900 font-medium"
+                dangerouslySetInnerHTML={{ __html: result.aiSummary.oneLineHook }}
+              />
             </div>
           )}
         </div>

@@ -51,7 +51,7 @@ export default function Home() {
               Analyze any webpage for growth potential using the <strong>C.A.S.H.</strong> framework:
             </p>
             <p>
-              Content, Authority, Systems, Hypergrowth
+              <strong className="font-bold">Content</strong>, <strong className="font-bold">Authority</strong>, <strong className="font-bold">Systems</strong>, <strong className="font-bold">Hypergrowth</strong>
             </p>
             <p>
               See your pain points, the leak in your growth, and the immediate fix.

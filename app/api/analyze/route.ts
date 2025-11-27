@@ -155,7 +155,8 @@ async function generateAISummary(
     // Extract loss amount from AI Receptionist offer
     const aiReceptionistOffer = scoreResult.offers.find(o => o.id === 'ai_receptionist');
     const lossAmount = aiReceptionistOffer?.monetizedLoss;
-    const lossText = lossAmount ? `$${lossAmount.toLocaleString()}` : 'money';
+    // Wrap loss amount in bold red span for frontend display
+    const lossText = lossAmount ? `<span class="font-bold text-red-600">$${lossAmount.toLocaleString()}</span>` : 'money';
 
     const prompt = `You are an agency advisor that sells AI receptionists and growth systems. Analyze this business website using the C.A.S.H. Method with 10 proprietary signals.
 
@@ -236,7 +237,7 @@ Rules:
     // Fallback summary with PAIN language
     const aiReceptionistOffer = scoreResult.offers.find(o => o.id === 'ai_receptionist');
     const fallbackLossAmount = aiReceptionistOffer?.monetizedLoss;
-    const fallbackLossText = fallbackLossAmount ? `$${fallbackLossAmount.toLocaleString()}` : 'money';
+    const fallbackLossText = fallbackLossAmount ? `<span class="font-bold text-red-600">$${fallbackLossAmount.toLocaleString()}</span>` : 'money';
 
     return {
       shortBullets: [
