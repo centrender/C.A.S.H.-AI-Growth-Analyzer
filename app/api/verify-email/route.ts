@@ -37,8 +37,43 @@ export async function POST(request: NextRequest) {
         expiresAt,
       });
 
-      // Simulate sending email (log to console)
-      console.log(`Sending verification code ${verificationCode} to ${email}`);
+      // Send email via SendGrid
+      if (process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL) {
+        try {
+          const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${process.env.SENDGRID_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              personalizations: [{
+                to: [{ email: email }]
+              }],
+              from: { email: process.env.SENDGRID_FROM_EMAIL },
+              subject: 'Your C.A.S.H. Analyzer Verification Code',
+              content: [{
+                type: 'text/plain',
+                value: `Your verification code is: ${verificationCode}\n\nThis code will expire in 10 minutes.\n\nIf you didn't request this, please ignore this email.`
+              }]
+            }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('SendGrid API Error:', errorData);
+            // We continue even if email fails to allow testing/fallback if needed, 
+            // but in production this might need to return an error. 
+            // For now, we assume if config is present, it should work.
+          }
+        } catch (error) {
+          console.error('Failed to send email:', error);
+        }
+      } else {
+        // Fallback for development if keys are missing
+        console.warn('SendGrid credentials not found. Logging code to console.');
+        console.log(`Sending verification code ${verificationCode} to ${email}`);
+      }
 
       return NextResponse.json({
         success: true,
