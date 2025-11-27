@@ -34,21 +34,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Normalize URL: Add https:// if protocol is missing
+    let normalizedUrl = url;
+    if (!/^https?:\/\//i.test(url)) {
+      normalizedUrl = `https://${url}`;
+    }
+
     // Validate URL format
     try {
-      new URL(url);
+      new URL(normalizedUrl);
     } catch {
-      logger.warn('Invalid URL format', { requestId, url });
+      logger.warn('Invalid URL format', { requestId, url: normalizedUrl });
       return NextResponse.json(
         { error: 'Invalid URL format', requestId },
         { status: 400 }
       );
     }
 
-    logger.info('Starting URL scraping', { requestId, url });
+    logger.info('Starting URL scraping', { requestId, url: normalizedUrl });
 
     // Scrape the URL
-    const scrapedContent = await scrapeUrl(url);
+    const scrapedContent = await scrapeUrl(normalizedUrl);
     logger.info('Scraping completed', {
       requestId,
       title: scrapedContent.title,

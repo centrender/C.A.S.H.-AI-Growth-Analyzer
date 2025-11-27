@@ -48,7 +48,17 @@ export async function scrapeUrl(url: string): Promise<ScrapedContent> {
       html, // Include raw HTML for signal detection
     };
   } catch (error) {
-    throw new Error(`Scraping failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.warn(`Scraping failed for ${url}:`, error);
+
+    // Fallback: If scraping fails (e.g. 403 Forbidden), return a minimal object
+    // so the analysis can proceed based on the URL/Domain alone.
+    return {
+      title: new URL(url).hostname,
+      headings: [],
+      text: `Scraping failed for ${url}. Analyzing based on domain name and external signals.`,
+      url,
+      html: '',
+    };
   }
 }
 
