@@ -62,17 +62,27 @@ export async function POST(request: NextRequest) {
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             console.error('SendGrid API Error:', errorData);
-            // We continue even if email fails to allow testing/fallback if needed, 
-            // but in production this might need to return an error. 
-            // For now, we assume if config is present, it should work.
+            return NextResponse.json({
+              success: false,
+              error: 'Failed to send email. Please check server logs or use test@example.com.',
+            }, { status: 500 });
           }
         } catch (error) {
           console.error('Failed to send email:', error);
+          return NextResponse.json({
+            success: false,
+            error: 'Failed to send email. System error.',
+          }, { status: 500 });
         }
       } else {
         // Fallback for development if keys are missing
         console.warn('SendGrid credentials not found. Logging code to console.');
         console.log(`Sending verification code ${verificationCode} to ${email}`);
+
+        return NextResponse.json({
+          success: true,
+          message: 'DEV MODE: Keys missing. Check Vercel Logs for code.',
+        });
       }
 
       return NextResponse.json({
