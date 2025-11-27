@@ -191,6 +191,63 @@ export default function ResultViewer({ result }: ResultViewerProps) {
         </div>
       </div>
 
+      {/* Google Business Profile Audit */}
+      <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold text-gray-900">Google Business Profile Audit</h3>
+          {result.gmbProfile?.found ? (
+            <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+              Profile Found
+            </span>
+          ) : (
+            <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
+              Profile Not Found
+            </span>
+          )}
+        </div>
+
+        {result.gmbProfile?.found ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="text-xs text-gray-500 uppercase font-semibold">Rating</p>
+              <p className={`text-xl font-bold ${(result.gmbProfile.rating || 0) >= 4.5 ? 'text-green-600' : 'text-red-600'}`}>
+                {result.gmbProfile.rating || 'N/A'} <span className="text-sm text-gray-400">/ 5.0</span>
+              </p>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="text-xs text-gray-500 uppercase font-semibold">Reviews</p>
+              <p className={`text-xl font-bold ${(result.gmbProfile.reviewCount || 0) >= 50 ? 'text-green-600' : 'text-red-600'}`}>
+                {result.gmbProfile.reviewCount || 0}
+              </p>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="text-xs text-gray-500 uppercase font-semibold">Last Review</p>
+              <p className="text-sm font-medium text-gray-900 mt-1">
+                {result.gmbProfile.lastReviewDate ? new Date(result.gmbProfile.lastReviewDate).toLocaleDateString() : 'Unknown'}
+              </p>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="text-xs text-gray-500 uppercase font-semibold">GMB Health Score</p>
+              <div className="flex items-center gap-2">
+                <span className={`text-xl font-bold ${getScoreLevel(result.gmbProfile.score).color}`}>
+                  {result.gmbProfile.score}
+                </span>
+                <span className="text-sm text-gray-400">/ 100</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="p-4 bg-red-50 border border-red-100 rounded-lg">
+            <p className="text-red-800 font-medium">
+              CRITICAL: We could not find a Google Business Profile for this website.
+            </p>
+            <p className="text-red-600 text-sm mt-1">
+              This is a major Authority leak. You are invisible to local search traffic.
+            </p>
+          </div>
+        )}
+      </div>
+
       {/* Critical Issues */}
       {result.priorityIssues.length > 0 && (
         <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">

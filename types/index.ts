@@ -40,6 +40,20 @@ export interface AISummary {
   oneLineHook: string;
 }
 
+export interface GMBProfile {
+  found: boolean;
+  url?: string;
+  name?: string;
+  rating?: number;
+  reviewCount?: number;
+  lastReviewDate?: string; // ISO string
+  responseRate?: number; // 0-100
+  photosCount?: number;
+  claimed?: boolean;
+  method: 'DIRECT_LINK' | 'API_SEARCH' | 'SERP_FALLBACK' | 'NOT_FOUND';
+  score: number; // 0-100 contribution to Authority
+}
+
 export interface AnalysisResult {
   requestId: string;
   url: string;
@@ -56,6 +70,7 @@ export interface AnalysisResult {
   priorityIssues: PriorityIssue[];
   offers: Offer[];
   aiSummary: AISummary;
+  gmbProfile?: GMBProfile; // New GMB Data
   // Keep for backward compatibility (optional)
   scrapedContent?: ScrapedContent;
   cashScore?: CASHScore; // Legacy format

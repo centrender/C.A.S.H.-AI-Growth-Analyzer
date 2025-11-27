@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { scrapeUrl } from '@/utils/scraper';
 import { calculateCASHScoreV2, CASHScoreResult } from '@/utils/cash-scoring';
+import { analyzeGMB } from '@/utils/gmb-analyzer';
 import { logger } from '@/utils/logger';
 import { AnalysisResult } from '@/types';
 
@@ -55,9 +56,14 @@ export async function POST(request: NextRequest) {
       textLength: scrapedContent.text.length
     });
 
+    // Analyze GMB Profile
+    logger.info('Analyzing GMB Profile', { requestId });
+    const gmbProfile = await analyzeGMB(scrapedContent.html || '', scrapedContent.title);
+    logger.info('GMB Analysis completed', { requestId, found: gmbProfile.found, score: gmbProfile.score });
+
     // Calculate CASH v2 scores
     logger.info('Calculating CASH v2 scores', { requestId });
-    const scoreResult = calculateCASHScoreV2(scrapedContent);
+    const scoreResult = calculateCASHScoreV2(scrapedContent, gmbProfile);
     logger.info('CASH v2 scores calculated', { requestId, scores: scoreResult.scores });
 
     // Generate AI summary
@@ -76,6 +82,7 @@ export async function POST(request: NextRequest) {
       priorityIssues: scoreResult.priorityIssues,
       offers: scoreResult.offers,
       aiSummary,
+      gmbProfile,
       // Keep for backward compatibility
       scrapedContent,
     };

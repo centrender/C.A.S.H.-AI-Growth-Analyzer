@@ -1,4 +1,4 @@
-import { ScrapedContent, CASHScore, Signal, PriorityIssue, Offer } from '@/types';
+import { ScrapedContent, CASHScore, Signal, PriorityIssue, Offer, GMBProfile } from '@/types';
 import * as cheerio from 'cheerio';
 
 // Business type to monthly loss multiplier mapping
@@ -43,7 +43,7 @@ export interface CASHScoreResult {
   detectedBusinessType?: string; // For VAPI CTA
 }
 
-export function calculateCASHScoreV2(content: ScrapedContent): CASHScoreResult {
+export function calculateCASHScoreV2(content: ScrapedContent, gmbProfile?: GMBProfile): CASHScoreResult {
   const html = content.html || '';
   const text = content.text.toLowerCase();
   const title = content.title.toLowerCase();
@@ -53,8 +53,8 @@ export function calculateCASHScoreV2(content: ScrapedContent): CASHScoreResult {
   const detectedBusinessType = detectBusinessType(content.text, content.title);
 
   // Calculate 10 proprietary signals
-  // Authority/Trust Signals (1, 2, 3, 9)
-  const authoritySignals = calculateAuthoritySignals(text, title, html, $);
+  // Authority/Trust Signals (1, 2, 3, 9) + GMB
+  const authoritySignals = calculateAuthoritySignals(text, title, html, $, gmbProfile);
 
   // Content/Friction/Intent Signals (4, 5, 7, 8)
   const contentSignals = calculateContentSignals(text, title, html, $);
@@ -67,7 +67,15 @@ export function calculateCASHScoreV2(content: ScrapedContent): CASHScoreResult {
 
   // Calculate category scores (0-100) from signals (0-10 each)
   const contentScore = normalizeCategoryScore(contentSignals);
-  const authorityScore = normalizeCategoryScore(authoritySignals);
+
+  // Authority Score Calculation (50% On-Page, 50% GMB)
+  // Filter out the GMB signal to calculate on-page score first
+  const onPageAuthoritySignals = authoritySignals.filter(s => s.id !== 'signal_gmb_profile');
+  const onPageAuthorityScore = normalizeCategoryScore(onPageAuthoritySignals);
+  const gmbScore = gmbProfile?.score || 0;
+
+  // Apply 50/50 weighting
+  const authorityScore = Math.round((onPageAuthorityScore * 0.5) + (gmbScore * 0.5));
   const systemsScore = normalizeCategoryScore(systemsSignals);
   const hypergrowthScore = normalizeCategoryScore(hypergrowthSignals);
 
@@ -100,7 +108,7 @@ export function calculateCASHScoreV2(content: ScrapedContent): CASHScoreResult {
     authority: authoritySignals,
     systems: systemsSignals,
     hypergrowth: hypergrowthSignals,
-  }, content, detectedBusinessType);
+  }, content, detectedBusinessType, gmbProfile);
 
   return {
     scores,
@@ -121,7 +129,7 @@ export function calculateCASHScoreV2(content: ScrapedContent): CASHScoreResult {
 // ============================================================================
 
 // AUTHORITY/TRUST SIGNALS (1, 2, 3, 9)
-function calculateAuthoritySignals(text: string, title: string, html: string, $: cheerio.CheerioAPI | null): Signal[] {
+function calculateAuthoritySignals(text: string, title: string, html: string, $: cheerio.CheerioAPI | null, gmbProfile?: GMBProfile): Signal[] {
   const signals: Signal[] = [];
 
   // Signal 1: Review Recency & Volume
@@ -186,6 +194,8 @@ function calculateAuthoritySignals(text: string, title: string, html: string, $:
     notes: socialProofScore >= 7 ? 'High social proof density across multiple channels' : 'Limited social proof elements detected',
   });
 
+
+
   // Signal 9: Trust Badge Presence
   const trustBadges = html.match(/(bbb|better business bureau|verified|trusted|award|certification|guarantee|warranty)/gi) || [];
   const securityIndicators = html.match(/(ssl|https|secure|encrypted|privacy policy|terms of service)/gi) || [];
@@ -203,6 +213,24 @@ function calculateAuthoritySignals(text: string, title: string, html: string, $:
     label: 'Trust Badge Presence',
     score: Math.min(10, trustBadgeScore),
     notes: trustBadgeScore >= 7 ? 'Strong trust badges and security indicators' : 'Missing trust badges and security signals',
+  });
+
+  // Signal: Google Business Profile (GMB)
+  // This signal is visual only here; the score is weighted 50% in the main calculation
+  const gmbScore = gmbProfile?.score ? Math.round(gmbProfile.score / 10) : 0; // Convert 0-100 to 0-10 for signal display
+
+  let gmbNotes = 'GMB Profile not found. Critical Authority Signal Missing.';
+  if (gmbProfile?.found) {
+    if (gmbScore >= 9) gmbNotes = 'Excellent Google Business Profile detected.';
+    else if (gmbScore >= 7) gmbNotes = 'Good GMB Profile, but room for optimization.';
+    else gmbNotes = 'Weak GMB Profile. Low ratings or activity detected.';
+  }
+
+  signals.push({
+    id: 'signal_gmb_profile',
+    label: 'Google Business Profile Health',
+    score: gmbScore,
+    notes: gmbNotes,
   });
 
   return signals;
@@ -477,7 +505,8 @@ function generateOffers(
   scores: CASHScore,
   signals: { content: Signal[]; authority: Signal[]; systems: Signal[]; hypergrowth: Signal[] },
   content: ScrapedContent,
-  detectedBusinessType: string | null
+  detectedBusinessType: string | null,
+  gmbProfile?: GMBProfile
 ): Offer[] {
   const offers: Offer[] = [];
 
@@ -507,6 +536,54 @@ function generateOffers(
       label: 'Review Management System',
       reason: 'FIX: We provide a 5-Star Review Machine to instantly fix your trust problem and outrank competitors.',
       priority: scores.authority < 40 ? 'high' : 'medium',
+    });
+  }
+
+  // GMB Specific Offers
+  if (gmbProfile) {
+    // Offer: Reputation Resurrection
+    // Condition: Rating < 4.5 OR Review Count < 40 OR Recency > 3 months (approx check via score)
+    // We use the raw profile data for precision
+    const isLowRating = (gmbProfile.rating || 0) < 4.5;
+    const isLowVolume = (gmbProfile.reviewCount || 0) < 40;
+    // We don't have exact recency in days here easily without parsing, but we can infer from score or just use these two.
+    // User requirement: "Star Rating < 4.5 OR Review Count < 40 OR Recency > 3 months"
+
+    // Check recency if available
+    let isOldReviews = false;
+    if (gmbProfile.lastReviewDate) {
+      const daysSince = (Date.now() - new Date(gmbProfile.lastReviewDate).getTime()) / (1000 * 60 * 60 * 24);
+      if (daysSince > 90) isOldReviews = true;
+    }
+
+    if (gmbProfile.found && (isLowRating || isLowVolume || isOldReviews)) {
+      offers.push({
+        id: 'reputation_resurrection',
+        label: 'Reputation Resurrection',
+        reason: 'CRITICAL: Your Google Reputation is hurting you. < 4.5 Stars or low reviews means customers ignore you. We install an automated system to get 5-star reviews on autopilot.',
+        priority: 'high',
+      });
+    }
+
+    // Offer: Local Dominance Pack
+    // Condition: Not found OR very low score
+    if (!gmbProfile.found || gmbProfile.score < 50) {
+      offers.push({
+        id: 'local_dominance',
+        label: 'Local Dominance Pack',
+        reason: !gmbProfile.found
+          ? 'INVISIBLE: We cannot find your Google Business Profile. You are invisible to local customers. We will claim, verify, and rank your profile #1.'
+          : 'WEAK PRESENCE: Your Google Profile is unoptimized and losing traffic. We optimize photos, posts, and categories to dominate the Map Pack.',
+        priority: 'high',
+      });
+    }
+  } else {
+    // Fallback if GMB profile was not passed (e.g. legacy or error), treat as not found
+    offers.push({
+      id: 'local_dominance',
+      label: 'Local Dominance Pack',
+      reason: 'INVISIBLE: We cannot find your Google Business Profile. You are invisible to local customers. We will claim, verify, and rank your profile #1.',
+      priority: 'high',
     });
   }
 
