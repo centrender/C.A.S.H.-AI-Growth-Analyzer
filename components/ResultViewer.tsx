@@ -66,6 +66,18 @@ export default function ResultViewer({ result }: ResultViewerProps) {
 
   return (
     <div className="w-full max-w-6xl space-y-6" data-result-container>
+      {/* Report Header */}
+      <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200 flex items-center justify-between">
+        <div>
+          <p className="text-sm text-gray-500 uppercase font-semibold">Report for:</p>
+          <h1 className="text-xl font-bold text-gray-900">{result.url}</h1>
+        </div>
+        <div className="text-right">
+          <p className="text-sm text-gray-500">Generated on</p>
+          <p className="font-medium text-gray-900">{new Date(result.timestamp).toLocaleDateString()}</p>
+        </div>
+      </div>
+
       {/* Overall Score Card */}
       <div className="bg-white rounded-lg shadow-lg p-8 border-2 border-gray-200">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -270,6 +282,10 @@ export default function ResultViewer({ result }: ResultViewerProps) {
           <div className="space-y-4">
             {result.offers
               .sort((a, b) => {
+                // Force AI Receptionist to be first
+                if (a.id === 'ai_receptionist') return -1;
+                if (b.id === 'ai_receptionist') return 1;
+                // Then sort by priority
                 const priorityOrder = { high: 3, medium: 2, low: 1 };
                 return priorityOrder[b.priority] - priorityOrder[a.priority];
               })

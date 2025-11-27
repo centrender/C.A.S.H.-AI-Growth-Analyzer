@@ -80,7 +80,14 @@ export async function POST(request: NextRequest) {
       scores: scoreResult.scores,
       signals: scoreResult.signals,
       priorityIssues: scoreResult.priorityIssues,
-      offers: scoreResult.offers,
+      offers: scoreResult.offers.sort((a, b) => {
+        // Force AI Receptionist to be first
+        if (a.id === 'ai_receptionist') return -1;
+        if (b.id === 'ai_receptionist') return 1;
+        // Then sort by priority
+        const priorityOrder = { high: 3, medium: 2, low: 1 };
+        return priorityOrder[b.priority] - priorityOrder[a.priority];
+      }),
       aiSummary,
       gmbProfile,
       // Keep for backward compatibility

@@ -132,9 +132,10 @@ async function exportElementToPDF(
     heightLeft -= pageHeight;
   }
 
-  // Generate filename with date
+  // Generate filename with date and domain
   const date = new Date().toISOString().split('T')[0].replace(/-/g, '');
-  const filename = `CASH_Audit_${date}.pdf`;
+  const domain = new URL(result.url).hostname.replace('www.', '');
+  const filename = `CASH_${domain}_Report_${date}.pdf`;
 
   // Save the PDF
   pdf.save(filename);
