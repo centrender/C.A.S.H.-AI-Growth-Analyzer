@@ -20,7 +20,7 @@ export default function URLInputForm({ onSubmit, isLoading }: URLInputFormProps)
   const handleGetCode = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-    
+
     if (!email.trim()) {
       setError('Please enter a valid email address');
       return;
@@ -54,7 +54,7 @@ export default function URLInputForm({ onSubmit, isLoading }: URLInputFormProps)
   const handleVerifyCode = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-    
+
     if (!code.trim()) {
       setError('Please enter the verification code');
       return;
@@ -179,7 +179,7 @@ export default function URLInputForm({ onSubmit, isLoading }: URLInputFormProps)
       </div>
       <form onSubmit={handleAnalyze} className="flex flex-col sm:flex-row gap-4">
         <input
-          type="url"
+          type="text"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="Enter URL to analyze (e.g., https://example.com)"
