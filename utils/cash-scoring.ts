@@ -22,10 +22,16 @@ const BUSINESS_PROFIT_MULTIPLIERS: Record<string, number> = {
   plumber: 120,
   electrician: 120,
   hvac: 120,
+  // Low ticket / High volume
+  restaurant: 112,
+  cafe: 112,
+  retail: 112,
+  food: 112,
 };
 
-// Default per-lead value for corporate/high-volume clients
-const DEFAULT_PER_LEAD_VALUE = 2000; // $2,000 per lead (corporate scale: 90 calls * $2,000 = $180,000/month)
+// Default per-lead value for unidentified/general clients
+// Changed from 2000 ($180k/mo) to 112 (~$10k/mo) to prevent pollution of non-corporate reports
+const DEFAULT_PER_LEAD_VALUE = 112;
 
 // Fixed number of missed calls per month
 const MISSED_CALLS_PER_MONTH = 90;
@@ -470,6 +476,10 @@ function detectBusinessType(text: string, title: string): string | null {
     'Plumber': ['plumber', 'plumbing', 'pipe'],
     'Electrician': ['electrician', 'electrical'],
     'HVAC': ['hvac', 'heating', 'cooling', 'air conditioning'],
+    'Restaurant': ['restaurant', 'dining', 'bistro', 'eatery'],
+    'Cafe': ['cafe', 'coffee', 'espresso', 'bakery'],
+    'Retail': ['retail', 'shop', 'store', 'boutique'],
+    'Food': ['food', 'menu', 'lunch', 'dinner'],
   };
 
   for (const [type, keywords] of Object.entries(typeMapping)) {
