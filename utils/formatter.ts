@@ -134,7 +134,8 @@ async function exportElementToPDF(
 
   // Generate filename with date and domain
   const date = new Date().toISOString().split('T')[0].replace(/-/g, '');
-  const domain = new URL(result.url).hostname.replace('www.', '');
+  // Strip protocol and www for clean filename
+  const domain = result.url.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
   const filename = `CASH_${domain}_Report_${date}.pdf`;
 
   // Save the PDF

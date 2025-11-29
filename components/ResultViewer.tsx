@@ -260,6 +260,24 @@ export default function ResultViewer({ result }: ResultViewerProps) {
         )}
       </div>
 
+      {/* Yelp Profile Audit (Placeholder for V15 Integration) */}
+      {/* 
+        NOTE: Full Yelp integration requires a backend scraper update. 
+        For now, we are displaying the placeholder structure as requested.
+        To fully activate this, we need to update utils/scraper.ts to fetch Yelp data.
+      */}
+      {/* 
+      <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold text-gray-900">Yelp Profile Audit</h3>
+          <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm font-medium">
+            Coming Soon
+          </span>
+        </div>
+        <p className="text-gray-600">Yelp integration is currently being finalized.</p>
+      </div> 
+      */}
+
       {/* Critical Issues */}
       {result.priorityIssues.length > 0 && (
         <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
