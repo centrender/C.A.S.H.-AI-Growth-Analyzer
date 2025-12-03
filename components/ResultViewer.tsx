@@ -65,9 +65,9 @@ export default function ResultViewer({ result }: ResultViewerProps) {
   const topHypergrowthSignal = getTopSignal(result.signals.hypergrowth);
 
   return (
-    <div className="w-full max-w-6xl space-y-6" data-result-container>
+    <div className="w-full max-w-6xl space-y-6 print:space-y-2 print:max-w-none" data-result-container>
       {/* Report Header */}
-      <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200 flex items-center justify-between">
+      <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200 flex items-center justify-between print:p-2 print:mb-1 print:shadow-none print:border-0">
         <div>
           <p className="text-sm text-gray-500 uppercase font-semibold">Report for:</p>
           <h1 className="text-xl font-bold text-gray-900">{result.url}</h1>
@@ -79,7 +79,7 @@ export default function ResultViewer({ result }: ResultViewerProps) {
       </div>
 
       {/* Overall Score Card */}
-      <div className="bg-white rounded-lg shadow-lg p-8 border-2 border-gray-200">
+      <div className="bg-white rounded-lg shadow-lg p-8 border-2 border-gray-200 print:p-4 print:mb-2 print:shadow-none print:border">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Overall CASH Score</h2>
@@ -103,7 +103,7 @@ export default function ResultViewer({ result }: ResultViewerProps) {
           </div>
         </div>
         {/* Export PDF Button */}
-        <div className="mt-6 flex justify-center">
+        <div className="mt-6 flex justify-center print:hidden">
           <button
             onClick={() => exportToPDF(result)}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-semibold flex items-center gap-2"
@@ -117,9 +117,9 @@ export default function ResultViewer({ result }: ResultViewerProps) {
       </div>
 
       {/* Category Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 print:gap-2">
         {/* Content */}
-        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 print:p-3 print:shadow-none">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-bold text-gray-900">Content</h3>
             <span className={`text-2xl font-bold ${contentLevel.color}`}>
@@ -140,7 +140,7 @@ export default function ResultViewer({ result }: ResultViewerProps) {
         </div>
 
         {/* Authority */}
-        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 print:p-3 print:shadow-none">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-bold text-gray-900">Authority</h3>
             <span className={`text-2xl font-bold ${authorityLevel.color}`}>
@@ -161,7 +161,7 @@ export default function ResultViewer({ result }: ResultViewerProps) {
         </div>
 
         {/* Systems */}
-        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 print:p-3 print:shadow-none">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-bold text-gray-900">Systems</h3>
             <span className={`text-2xl font-bold ${systemsLevel.color}`}>
@@ -182,7 +182,7 @@ export default function ResultViewer({ result }: ResultViewerProps) {
         </div>
 
         {/* Hypergrowth */}
-        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 print:p-3 print:shadow-none">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-bold text-gray-900">Hypergrowth</h3>
             <span className={`text-2xl font-bold ${hypergrowthLevel.color}`}>
@@ -204,7 +204,7 @@ export default function ResultViewer({ result }: ResultViewerProps) {
       </div>
 
       {/* Google Business Profile Audit */}
-      <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+      <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 print:p-3 print:mb-2 print:shadow-none">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xl font-bold text-gray-900">Google Business Profile Audit</h3>
           {result.gmbProfile?.found ? (
@@ -280,7 +280,7 @@ export default function ResultViewer({ result }: ResultViewerProps) {
 
       {/* Critical Issues */}
       {result.priorityIssues.length > 0 && (
-        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 print:p-3 print:mb-2 print:shadow-none">
           <h3 className="text-xl font-bold text-gray-900 mb-4">Critical Issues</h3>
           <div className="space-y-3">
             {result.priorityIssues.slice(0, 5).map((issue) => (
@@ -295,7 +295,7 @@ export default function ResultViewer({ result }: ResultViewerProps) {
 
       {/* Recommended Offers */}
       {result.offers.length > 0 && (
-        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 print:p-3 print:mb-2 print:shadow-none">
           <h3 className="text-xl font-bold text-gray-900 mb-4">Recommended Offers</h3>
           <div className="space-y-4">
             {result.offers
@@ -316,7 +316,7 @@ export default function ResultViewer({ result }: ResultViewerProps) {
                   {offer.id === 'ai_receptionist' && offer.monetizedLoss ? (
                     <div>
                       <p className="text-sm text-gray-600 mb-2">
-                        <span className="font-bold text-red-600">This Systemic Leakage Costs You ${offer.monetizedLoss.toLocaleString()}/month in Revenue.</span>{' '}
+                        <span className="font-bold text-red-600">This Revenue Leakage Costs You ${offer.monetizedLoss.toLocaleString()}/month.</span>{' '}
                         No online booking system detected. Our AI receptionist handles calls and bookings 24/7.
                       </p>
                     </div>
@@ -331,7 +331,7 @@ export default function ResultViewer({ result }: ResultViewerProps) {
 
       {/* VAPI Dynamic CTA */}
       {result.detectedBusinessType && (
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg p-8 border-2 border-blue-700 text-center">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg p-8 border-2 border-blue-700 text-center print:hidden">
           <a
             href={`https://vapi.ai/demo/${getCTABusinessType(result.detectedBusinessType).toLowerCase().replace(/\s+/g, '-')}`}
             target="_blank"
@@ -354,14 +354,14 @@ export default function ResultViewer({ result }: ResultViewerProps) {
 
       {/* AI Notes */}
       {result.aiSummary && (
-        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 print:p-3 print:mb-2 print:shadow-none">
           <h3 className="text-xl font-bold text-gray-900 mb-4">AI Notes</h3>
           <div className="space-y-3 mb-4">
             {result.aiSummary.shortBullets.map((bullet, idx) => (
               <div key={idx} className="flex items-start gap-3">
                 <span className="text-blue-600 mt-1">•</span>
                 <p
-                  className="text-gray-700 flex-1"
+                  className="text-gray-700 flex-1 print:text-xs"
                   dangerouslySetInnerHTML={{ __html: bullet }}
                 />
               </div>
@@ -371,7 +371,7 @@ export default function ResultViewer({ result }: ResultViewerProps) {
             <div className="mt-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
               <p className="text-sm font-semibold text-gray-700 mb-1">Recommendation Summary:</p>
               <p
-                className="text-gray-900 font-medium"
+                className="text-gray-900 font-medium print:text-xs"
                 dangerouslySetInnerHTML={{ __html: result.aiSummary.oneLineHook }}
               />
             </div>
