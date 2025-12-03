@@ -369,7 +369,7 @@ export default function ResultViewer({ result }: ResultViewerProps) {
           </div>
           {result.aiSummary.oneLineHook && (
             <div className="mt-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
-              <p className="text-sm font-semibold text-gray-700 mb-1">Executive Pitch Hook:</p>
+              <p className="text-sm font-semibold text-gray-700 mb-1">Recommendation Summary:</p>
               <p
                 className="text-gray-900 font-medium"
                 dangerouslySetInnerHTML={{ __html: result.aiSummary.oneLineHook }}

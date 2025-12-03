@@ -66,7 +66,7 @@ async function generateAISummary(
 
     return {
       shortBullets: Array.isArray(parsed.shortBullets) ? parsed.shortBullets : ['Error generating summary.'],
-      oneLineHook: parsed.oneLineHook || `Stop losing money! Fix your ${lossText}/month systemic leak with our 24/7 AI Leasing Agent.`,
+      oneLineHook: parsed.oneLineHook || `Fix your ${lossText}/month revenue leakage with our 24/7 AI Leasing Agent.`,
     };
   } catch (e) {
     logger.error('AI summary generation failed (using fallback)', { requestId });
@@ -76,7 +76,7 @@ async function generateAISummary(
         'Your reviews are old. New customers see this and choose your competitor.',
         'You are manually following up with leads—you\'re too slow and leads are slipping away (Systemic Neglect).',
       ],
-      oneLineHook: `Stop losing money! Fix your ${lossText}/month systemic leak with our 24/7 AI Leasing Agent.`,
+      oneLineHook: `Fix your ${lossText}/month revenue leakage with our 24/7 AI Leasing Agent.`,
     };
   }
 }
