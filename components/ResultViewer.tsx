@@ -316,7 +316,7 @@ export default function ResultViewer({ result }: ResultViewerProps) {
                   {offer.id === 'ai_receptionist' && offer.monetizedLoss ? (
                     <div>
                       <p className="text-sm text-gray-600 mb-2">
-                        <span className="font-bold text-red-600">URGENT: Your Phone Is Losing You ${offer.monetizedLoss.toLocaleString()}/month.</span>{' '}
+                        <span className="font-bold text-red-600">This Systemic Leakage Costs You ${offer.monetizedLoss.toLocaleString()}/month in Revenue.</span>{' '}
                         No online booking system detected. Our AI receptionist handles calls and bookings 24/7.
                       </p>
                     </div>
@@ -369,7 +369,7 @@ export default function ResultViewer({ result }: ResultViewerProps) {
           </div>
           {result.aiSummary.oneLineHook && (
             <div className="mt-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
-              <p className="text-sm font-semibold text-gray-700 mb-1">Outreach Hook:</p>
+              <p className="text-sm font-semibold text-gray-700 mb-1">Executive Pitch Hook:</p>
               <p
                 className="text-gray-900 font-medium"
                 dangerouslySetInnerHTML={{ __html: result.aiSummary.oneLineHook }}
