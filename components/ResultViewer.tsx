@@ -78,34 +78,41 @@ export default function ResultViewer({ result }: ResultViewerProps) {
         </div>
       </div>
 
-      {/* Overall Score Card (Compact) */}
-      <div className="bg-white rounded-lg shadow-lg p-4 border-2 border-gray-200 print:p-2 print:mb-2 print:shadow-none print:border">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <h2 className="text-xl font-bold text-gray-900">Overall CASH Score: {result.scores.overall}</h2>
-            <div className={`px-4 py-1 rounded-full ${overallLevel.bgColor} ${overallLevel.color} font-semibold text-sm`}>
-              {overallLevel.label}
+      {/* Overall Score Card */}
+      <div className="bg-white rounded-lg shadow-lg p-8 border-2 border-gray-200 print:p-4 print:mb-2 print:shadow-none print:border">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Overall CASH Score</h2>
+            <div className="flex items-center gap-3">
+              <span className={`text-5xl font-bold ${overallLevel.color}`}>
+                {result.scores.overall}
+              </span>
+              <span className="text-3xl text-gray-500">/100</span>
             </div>
           </div>
-
-          {/* Export PDF Button */}
+          <div className={`px-6 py-3 rounded-full ${overallLevel.bgColor} ${overallLevel.color} font-semibold text-lg`}>
+            {overallLevel.label}
+          </div>
+        </div>
+        <div className="mt-4">
+          <div className="w-full bg-gray-200 rounded-full h-4">
+            <div
+              className={`h-4 rounded-full ${getScoreColor(result.scores.overall)} transition-all duration-500`}
+              style={{ width: `${result.scores.overall}%` }}
+            />
+          </div>
+        </div>
+        {/* Export PDF Button */}
+        <div className="mt-6 flex justify-center print:hidden">
           <button
             onClick={() => exportToPDF(result)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-semibold flex items-center gap-2 print:hidden"
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-semibold flex items-center gap-2"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             Export Report (PDF)
           </button>
-        </div>
-        <div className="mt-3">
-          <div className="w-full bg-gray-200 rounded-full h-3">
-            <div
-              className={`h-3 rounded-full ${getScoreColor(result.scores.overall)} transition-all duration-500`}
-              style={{ width: `${result.scores.overall}%` }}
-            />
-          </div>
         </div>
       </div>
 
@@ -196,82 +203,95 @@ export default function ResultViewer({ result }: ResultViewerProps) {
         </div>
       </div>
 
-      {/* Audit & Issues Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 print:gap-2">
-        {/* Google Business Profile Audit */}
-        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 print:p-3 print:mb-2 print:shadow-none h-full">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-bold text-gray-900">Google Business Profile Audit</h3>
-            {result.gmbProfile?.found ? (
-              <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                Profile Found
-              </span>
-            ) : (
-              <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
-                Profile Not Found
-              </span>
-            )}
-          </div>
-
+      {/* Google Business Profile Audit */}
+      <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 print:p-3 print:mb-2 print:shadow-none">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold text-gray-900">Google Business Profile Audit</h3>
           {result.gmbProfile?.found ? (
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <p className="text-xs text-gray-500 uppercase font-semibold">Rating</p>
-                <p className={`text-xl font-bold ${(result.gmbProfile.rating || 0) >= 4.5 ? 'text-green-600' : 'text-red-600'}`}>
-                  {result.gmbProfile.rating || 'N/A'} <span className="text-sm text-gray-400">/ 5.0</span>
-                </p>
-              </div>
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <p className="text-xs text-gray-500 uppercase font-semibold">Reviews</p>
-                <p className={`text-xl font-bold ${(result.gmbProfile.reviewCount || 0) >= 50 ? 'text-green-600' : 'text-red-600'}`}>
-                  {result.gmbProfile.reviewCount || 0}
-                </p>
-              </div>
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <p className="text-xs text-gray-500 uppercase font-semibold">Last Review</p>
-                <p className="text-sm font-medium text-gray-900 mt-1">
-                  {result.gmbProfile.lastReviewDate ? new Date(result.gmbProfile.lastReviewDate).toLocaleDateString() : 'Unknown'}
-                </p>
-              </div>
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <p className="text-xs text-gray-500 uppercase font-semibold">Health Score</p>
-                <div className="flex items-center gap-2">
-                  <span className={`text-xl font-bold ${getScoreLevel(result.gmbProfile.score).color}`}>
-                    {result.gmbProfile.score}
-                  </span>
-                  <span className="text-sm text-gray-400">/ 100</span>
-                </div>
-              </div>
-            </div>
+            <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+              Profile Found
+            </span>
           ) : (
-            <div className="p-4 bg-red-50 border border-red-100 rounded-lg">
-              <p className="text-red-800 font-medium">
-                CRITICAL: We could not find a Google Business Profile for this website.
-              </p>
-              <p className="text-red-600 text-sm mt-1">
-                This is a major Authority leak. You are invisible to local search traffic.
-              </p>
-            </div>
+            <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
+              Profile Not Found
+            </span>
           )}
         </div>
 
-        {/* Critical Issues */}
-        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 print:p-3 print:mb-2 print:shadow-none h-full">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Critical Issues</h3>
-          {result.priorityIssues.length > 0 ? (
-            <div className="space-y-3">
-              {result.priorityIssues.slice(0, 5).map((issue) => (
-                <div key={issue.id} className="flex items-start gap-3">
-                  <div className={`w-3 h-3 rounded-full mt-1.5 flex-shrink-0 ${getSeverityColor(issue.severity)}`} />
-                  <p className="text-gray-700 flex-1">{issue.label}</p>
-                </div>
-              ))}
+        {result.gmbProfile?.found ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="text-xs text-gray-500 uppercase font-semibold">Rating</p>
+              <p className={`text-xl font-bold ${(result.gmbProfile.rating || 0) >= 4.5 ? 'text-green-600' : 'text-red-600'}`}>
+                {result.gmbProfile.rating || 'N/A'} <span className="text-sm text-gray-400">/ 5.0</span>
+              </p>
             </div>
-          ) : (
-            <p className="text-gray-500 italic">No critical issues detected.</p>
-          )}
-        </div>
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="text-xs text-gray-500 uppercase font-semibold">Reviews</p>
+              <p className={`text-xl font-bold ${(result.gmbProfile.reviewCount || 0) >= 50 ? 'text-green-600' : 'text-red-600'}`}>
+                {result.gmbProfile.reviewCount || 0}
+              </p>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="text-xs text-gray-500 uppercase font-semibold">Last Review</p>
+              <p className="text-sm font-medium text-gray-900 mt-1">
+                {result.gmbProfile.lastReviewDate ? new Date(result.gmbProfile.lastReviewDate).toLocaleDateString() : 'Unknown'}
+              </p>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="text-xs text-gray-500 uppercase font-semibold">GMB Health Score</p>
+              <div className="flex items-center gap-2">
+                <span className={`text-xl font-bold ${getScoreLevel(result.gmbProfile.score).color}`}>
+                  {result.gmbProfile.score}
+                </span>
+                <span className="text-sm text-gray-400">/ 100</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="p-4 bg-red-50 border border-red-100 rounded-lg">
+            <p className="text-red-800 font-medium">
+              CRITICAL: We could not find a Google Business Profile for this website.
+            </p>
+            <p className="text-red-600 text-sm mt-1">
+              This is a major Authority leak. You are invisible to local search traffic.
+            </p>
+          </div>
+        )}
       </div>
+
+      {/* Yelp Profile Audit (Placeholder for V15 Integration) */}
+      {/* 
+        NOTE: Full Yelp integration requires a backend scraper update. 
+        For now, we are displaying the placeholder structure as requested.
+        To fully activate this, we need to update utils/scraper.ts to fetch Yelp data.
+      */}
+      {/* 
+      <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold text-gray-900">Yelp Profile Audit</h3>
+          <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm font-medium">
+            Coming Soon
+          </span>
+        </div>
+        <p className="text-gray-600">Yelp integration is currently being finalized.</p>
+      </div> 
+      */}
+
+      {/* Critical Issues */}
+      {result.priorityIssues.length > 0 && (
+        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 print:p-3 print:mb-2 print:shadow-none">
+          <h3 className="text-xl font-bold text-gray-900 mb-4">Critical Issues</h3>
+          <div className="space-y-3">
+            {result.priorityIssues.slice(0, 5).map((issue) => (
+              <div key={issue.id} className="flex items-start gap-3">
+                <div className={`w-3 h-3 rounded-full mt-1.5 flex-shrink-0 ${getSeverityColor(issue.severity)}`} />
+                <p className="text-gray-700 flex-1">{issue.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Recommended Offers */}
       {result.offers.length > 0 && (
@@ -311,22 +331,24 @@ export default function ResultViewer({ result }: ResultViewerProps) {
 
       {/* VAPI Dynamic CTA */}
       {result.detectedBusinessType && (
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg p-4 border-2 border-blue-700 text-center print:hidden">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg p-8 border-2 border-blue-700 text-center print:hidden">
           <a
             href={`https://vapi.ai/demo/${getCTABusinessType(result.detectedBusinessType).toLowerCase().replace(/\s+/g, '-')}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block px-6 py-3 bg-white text-blue-600 rounded-lg font-bold text-md hover:bg-blue-50 transition-colors shadow-md hover:shadow-lg"
+            className="inline-block px-8 py-4 bg-white text-blue-600 rounded-lg font-bold text-lg hover:bg-blue-50 transition-colors shadow-md hover:shadow-lg"
           >
             {(() => {
               const aiOffer = result.offers.find(o => o.id === 'ai_receptionist');
               const lossAmount = aiOffer?.monetizedLoss;
-              const businessType = getCTABusinessType(result.detectedBusinessType || 'Business');
               return lossAmount
-                ? `Unlock Your $${lossAmount.toLocaleString()} Revenue Leak: Call the ${businessType} AI Demo`
-                : `Unlock Your Revenue Leak: Call the ${businessType} AI Demo`;
+                ? `Unlock Your $${lossAmount.toLocaleString()} Revenue Leak Today`
+                : `Unlock Your Revenue Leak Today`;
             })()}
           </a>
+          <p className="mt-4 text-white text-sm opacity-90">
+            Stop wasting human time. Start booking tours now.
+          </p>
         </div>
       )}
 
